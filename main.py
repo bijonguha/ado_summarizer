@@ -70,13 +70,15 @@ if static_path.exists():
 
 logger.info(f"Starting {config['api']['title']} v{config['api']['version']}")
 
-AZURE_DEVOPS_ORG = config['azure_devops']['organization']
-AZURE_DEVOPS_PROJECT = config['azure_devops']['project']
-AZURE_ACCESS_TOKEN = config['azure_devops']['access_token']
-DEFAULT_USER = config['azure_devops']['default_user']
-DEFAULT_ITERATION = config['azure_devops']['default_iteration']
-DEFAULT_TEAM = config['azure_devops']['default_team']
-BASE_URL = config['azure_devops']['base_url']
+# Azure DevOps settings - fallback defaults (primarily used for dynamic configuration now)
+azure_config = config.get('azure_devops', {})
+AZURE_DEVOPS_ORG = azure_config.get('organization', 'your-org')
+AZURE_DEVOPS_PROJECT = azure_config.get('project', 'YourProject')
+AZURE_ACCESS_TOKEN = azure_config.get('access_token', 'your-pat-token')
+DEFAULT_USER = azure_config.get('default_user', 'user@company.com')
+DEFAULT_ITERATION = azure_config.get('default_iteration', 'Project\\Sprint\\Iteration')
+DEFAULT_TEAM = azure_config.get('default_team', 'Your Team')
+BASE_URL = azure_config.get('base_url', 'https://your-org.visualstudio.com')
 
 def get_auth_header(access_token: str = None):
     token_to_use = access_token or AZURE_ACCESS_TOKEN

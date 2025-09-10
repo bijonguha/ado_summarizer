@@ -1,0 +1,18 @@
+# API Configuration
+api:
+  title: "Azure DevOps Summarizer"
+  version: "1.0.0"
+  host: "0.0.0.0"
+  port: 8000
+
+# Request timeout settings
+timeouts:
+  request_timeout: 30  # seconds
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "app.log"
+  max_file_size_mb: 10
+  backup_count: 3
