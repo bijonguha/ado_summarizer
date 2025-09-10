@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure DevOps Summarizer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Health Status Indicator -->
+    <div id="health-indicator" class="health-indicator">
+        <div class="health-dot" id="health-dot"></div>
+        <span class="health-text" id="health-text">Checking...</span>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="16" fill="#0078D4"/>
+                        <path d="M8 12h16v2H8v-2zm0 4h16v2H8v-2zm0 4h12v2H8v-2z" fill="white"/>
+                    </svg>
+                </div>
+                <h1 class="title">Azure DevOps Summarizer</h1>
+            </div>
+            <div class="header-actions">
+                <button id="settingsButton" class="btn btn-secondary settings-btn" title="Configure Azure DevOps Settings">
+                    ⚙️ Settings
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Filters Section -->
+            <section class="filters-section">
+                <h2>Work Item Summary</h2>
+                <div class="filters-form">
+                    <div class="input-group">
+                        <label for="assignedTo">Assigned To</label>
+                        <input 
+                            type="email" 
+                            id="assignedTo" 
+                            value="Bijon.Guha@compassdigital.io"
+                            placeholder="Enter email address"
+                        >
+                    </div>
+                    <div class="input-group">
+                        <label for="iteration">Iteration</label>
+                        <select id="iteration" disabled>
+                            <option value="">Loading iterations...</option>
+                        </select>
+                    </div>
+                    <button id="generateSummary" class="btn btn-primary" disabled>
+                        <span class="btn-text">Generate Summary</span>
+                        <div class="btn-loader" id="summaryLoader"></div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <div class="results-title-section">
+                        <h3 id="resultsTitle">Work Items</h3>
+                        <div class="results-count" id="resultsCount"></div>
+                    </div>
+                    <button id="exportButton" class="btn btn-secondary export-btn" title="Export work items to markdown">
+                        📥 Export
+                    </button>
+                </div>
+                <div class="work-items-list" id="workItemsList">
+                    <!-- Work items will be populated here -->
+                </div>
+            </section>
+
+            <!-- Loading States -->
+            <div class="loading-skeleton" id="loadingSkeleton" style="display: none;">
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">📋</div>
+                <h3>No Work Items Found</h3>
+                <p>Try adjusting your filters or check if you have access to the specified iteration.</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state" id="errorState" style="display: none;">
+                <div class="error-state-icon">⚠️</div>
+                <h3>Something went wrong</h3>
+                <p id="errorMessage">An error occurred while fetching data. Please try again.</p>
+                <button class="btn btn-secondary" onclick="window.location.reload()">Refresh Page</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModalOverlay" style="display: none;">
+        <div class="modal settings-modal">
+            <div class="modal-header">
+                <h3 id="settingsModalTitle">Azure DevOps Settings</h3>
+                <button class="modal-close" id="settingsModalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="settingsModalBody">
+                <form id="settingsForm">
+                    <div class="settings-section">
+                        <h4>Azure DevOps Configuration</h4>
+                        <div class="config-upload-section">
+                            <label class="config-upload-label">
+                                📁 Upload Configuration File (Optional)
+                                <input type="file" id="configFileInput" accept=".yaml,.yml" style="display: none;">
+                                <span class="config-upload-button">Choose YAML File</span>
+                            </label>
+                            <small>Upload your config.yaml file to auto-fill all settings</small>
+                        </div>
+                        <div class="settings-grid">
+                            <div class="input-group">
+                                <label for="orgSetting">Organization</label>
+                                <input type="text" id="orgSetting" placeholder="your-org" required autocomplete="organization">
+                                <small>Your Azure DevOps organization name</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="projectSetting">Project</label>
+                                <input type="text" id="projectSetting" placeholder="YourProject" required autocomplete="off">
+                                <small>Your project name</small>
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="baseUrlSetting">Base URL</label>
+                                <input type="url" id="baseUrlSetting" placeholder="https://your-org.visualstudio.com" required autocomplete="url">
+                                <small>Your Azure DevOps instance URL</small>
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="accessTokenSetting">Personal Access Token</label>
+                                <input type="password" id="accessTokenSetting" placeholder="Enter your PAT token" required autocomplete="current-password">
+                                <small>Azure DevOps Personal Access Token with Work Items read permissions</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h4>Default Settings</h4>
+                        <div class="settings-grid">
+                            <div class="input-group full-width">
+                                <label for="defaultUserSetting">Default User Email</label>
+                                <input type="email" id="defaultUserSetting" placeholder="user@company.com" autocomplete="email">
+                                <small>Default email for work item queries</small>
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="defaultTeamSetting">Default Team</label>
+                                <input type="text" id="defaultTeamSetting" placeholder="Team Alpha" autocomplete="off">
+                                <small>Your team name</small>
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="defaultIterationSetting">Default Iteration</label>
+                                <input type="text" id="defaultIterationSetting" placeholder="Project\\Sprint\\Iteration 1" autocomplete="off">
+                                <small>Default iteration path (optional)</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelSettingsBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitSettingsBtn">
+                            🔍 Test & Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Check Result Modal -->
+    <div class="modal-overlay" id="healthModalOverlay" style="display: none;">
+        <div class="modal health-modal">
+            <div class="modal-header">
+                <h3 id="healthModalTitle">Connection Test Result</h3>
+                <button class="modal-close" id="healthModalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="healthModalBody">
+                <div class="health-result" id="healthResult">
+                    <div class="health-icon" id="healthIcon">🔄</div>
+                    <div class="health-status" id="healthStatus">Testing connection...</div>
+                    <div class="health-message" id="healthMessage">Please wait while we validate your settings.</div>
+                    
+                    <div class="health-recommendations" id="healthRecommendations" style="display: none;">
+                        <h4>Next Steps</h4>
+                        <ul id="recommendationsList">
+                        </ul>
+                    </div>
+                    
+                    <div class="health-actions" id="healthActions" style="display: none;">
+                        <button type="button" class="btn btn-secondary" id="retryHealthCheck">
+                            🔄 Retry Test
+                        </button>
+                        <button type="button" class="btn btn-primary" id="proceedWithSave">
+                            ✅ Save Anyway
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Work Item Details -->
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Work Item Details</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="modal-loader" id="modalLoader">
+                    <div class="loader-spinner"></div>
+                    <p>Loading work item details...</p>
+                </div>
+                <div class="work-item-details" id="workItemDetails" style="display: none;">
+                    <!-- Details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

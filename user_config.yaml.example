@@ -1,0 +1,14 @@
+# User Configuration Example
+# Copy this file to user_config.yaml and update with your settings
+
+organization: "your-org"
+project: "YourProject"
+access_token: "your-pat-token-here"
+
+# Default team and user settings
+default_team: "Your Team Name"
+default_user: "your.email@company.com"
+default_iteration: "YourProject\\Sprint\\Iteration 1"
+
+# Azure DevOps URLs
+base_url: "https://your-org.visualstudio.com"
