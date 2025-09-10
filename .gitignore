@@ -20,6 +20,7 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -50,3 +51,19 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Virtual environments  
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Additional Python
+.tox/
+.nox/
+*.cover
+*.py.cover
+.hypothesis/
+cover/
